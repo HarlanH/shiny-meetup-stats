@@ -1,5 +1,5 @@
-shiny-meetup-test
-=================
+shiny-meetup-stats
+==================
 
 This demonstrates how to use R Shiny apps to authenticate with Meetup's API
 and pull data.
@@ -22,13 +22,16 @@ provides.
 Setup for Shinyapps.io Use
 --------------------------
 
+NOTE: this process doesn't quite work yet -- you have to edit a couple of lines
+of code. Will be fixed soon...
+
 1. Register an OAuth consumer for Meetup's API by filling out
 [their form](https://secure.meetup.com/meetup_api/oauth_consumers/create/). Set the
 redirect URI to [https://youraccountnamehere.shinyapps.io]().
 
 2. Copy `Rprofile-sample.R` to `.Rprofile`. Fill in the key values with what Meetup
 provides. Set the `redirect_uri` 
-to `https://youraccountnamehere.shinyapps.io/shiny-meetup-test`.
+to `https://youraccountnamehere.shinyapps.io/meetup-stats`.
 
 3. Deploy the app:
 

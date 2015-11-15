@@ -29,9 +29,11 @@ shinyServer(function(input, output, session) {
       validate(
         need(AuthCode(), "Log in to see your Meetup groups")
       )
-      message(appURL())
-      access_token <- MeetupGetToken(code = AuthCode(), 
-                                     redirect.uri=appURL())
+      #message(appURL())
+      # TODO: If running locally, send appURL, otherwise fall through to the 
+      # config option
+      access_token <- MeetupGetToken(code = AuthCode() )
+                                     #redirect.uri=appURL())
       token <- access_token$access_token
     })
     
@@ -47,9 +49,9 @@ shinyServer(function(input, output, session) {
       a(tags$button("Log In With Meetup",
                     type="button", class="btn btn-primary shinybtn"), 
         target="_top",
-        href=MeetupGetTokenURL(securityCode, 
-                               redirect.uri=appURL()))
-      
+        # TODO: same as above
+        href=MeetupGetTokenURL(securityCode))
+                               #redirect.uri=appURL()))
     }
   })
   

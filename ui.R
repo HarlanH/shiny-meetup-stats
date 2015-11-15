@@ -1,15 +1,8 @@
-
-# This is the user-interface definition of a Shiny web application.
-# You can find out more about building applications with Shiny here:
-# 
-# http://www.rstudio.com/shiny/
-#
-
 library(shiny)
 library(shinydashboard)
 
 shinyUI(dashboardPage(
-  dashboardHeader(title="Shiny Meetup Stats App"),
+  dashboardHeader(title="Meetup Stats"),
   dashboardSidebar(
     htmlOutput("AuthMeetupURL"),
     selectInput("selectedMeetup", "Group", ""),
@@ -26,8 +19,10 @@ shinyUI(dashboardPage(
       tabItem("rsvps",
               plotOutput("rsvpPlot")),
       tabItem("about",
-              a(href="", "Source on Github"))
+              a(href="https://github.com/HarlanH/shiny-meetup-stats", "Source on Github"))
     )
     
-  )
+  ),
+  title="Meetup Stats",
+  skin="red"
 ))
