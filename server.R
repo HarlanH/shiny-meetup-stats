@@ -18,10 +18,12 @@ shinyServer(function(input, output, session) {
   
   appURL <- reactive({
     if (!is.null(session)) {
-      ## build redirect URI
-      paste0(session$clientData$url_protocol, "//", session$clientData$url_hostname, 
-             ifelse(session$clientData$url_hostname == "127.0.0.1", 
-                    ":", session$clientData$url_pathname), session$clientData$url_port)
+      # if we're running on localhost, build the redirect URI, so we get the port right;
+      # if we're running on a server, use the config option
+      if (session$clientData$url_hostname == "127.0.0.1") {
+        paste0(session$clientData$url_protocol, "//", session$clientData$url_hostname, 
+              ":", session$clientData$url_port)
+      } else getOption("shiny_meetup_stats.redirect_uri")
     }
   })
   
@@ -29,11 +31,9 @@ shinyServer(function(input, output, session) {
       validate(
         need(AuthCode(), "Log in to see your Meetup groups")
       )
-      #message(appURL())
-      # TODO: If running locally, send appURL, otherwise fall through to the 
-      # config option
-      access_token <- MeetupGetToken(code = AuthCode() )
-                                     #redirect.uri=appURL())
+      message(appURL())
+      access_token <- MeetupGetToken(code = AuthCode(),
+                                     redirect.uri=appURL())
       token <- access_token$access_token
     })
     
@@ -49,9 +49,9 @@ shinyServer(function(input, output, session) {
       a(tags$button("Log In With Meetup",
                     type="button", class="btn btn-primary shinybtn"), 
         target="_top",
-        # TODO: same as above
-        href=MeetupGetTokenURL(securityCode))
-                               #redirect.uri=appURL()))
+        href=MeetupGetTokenURL(securityCode,
+                               redirect.uri=appURL())
+      )
     }
   })
   
