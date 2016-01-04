@@ -73,10 +73,15 @@ shinyServer(function(input, output, session) {
     resp <- GET(url=paste0(MeetupBaseURL, "/2/groups"),
               query=list(member_id="self", only="name,urlname",
                          access_token=tok))
-    mus <- content(resp)$results
-    ret <- structure(sapply(mus, function(mu) mu$urlname),
-                     names=sapply(mus, function(mu) mu$name))
-    c("", ret[order(names(ret))])
+    message(status_code(resp))
+    if (status_code(resp) != 200) {
+      paste("ERROR", content(resp)$problem)
+    } else {
+      mus <- content(resp)$results
+      ret <- structure(sapply(mus, function(mu) mu$urlname),
+                       names=sapply(mus, function(mu) mu$name))
+      c("", ret[order(names(ret))])
+    }
   })
   
   rsvpData <- reactive({
@@ -180,6 +185,47 @@ shinyServer(function(input, output, session) {
     }
   })
   
+  # for a single person, get a vector of their Meetup memberships
+  getMemberships <- function(tok, member_id, sleepdur=.5) {
+    Sys.sleep(sleepdur)
+    resp <- GET(url=paste0(MeetupBaseURL, "/members/", member_id),
+                query=list(fields='memberships',
+                           only="id,memberships",
+                           access_token=tok))
+    res <- content(resp)$results
+    sapply(res$memberships$member, function(x) x$group$urlname)
+  }
+  
+  nextEventMemberMatrix <- reactive({
+    if (nchar(input$selectedMeetup) > 0) {
+      tok <- AccessToken()
+      member_ids <- nextEventRSVPs()[1:10]
+      
+      message("getting memberships")
+      # get a big list of memberships, then create a matrix
+      
+      progress <- shiny::Progress$new(session, min=1, max=length(member_ids))
+      on.exit(progress$close())
+      
+      progress$set(message = 'Data pull in progress',
+                   detail = 'This may take a while...')
+      
+      all_ms <- lapply(seq_along(member_ids), function(i) {
+        progress$set(value=i)
+        getMemberships(tok, member_ids[[i]])
+        })
+      all_groups <- unique(unlist(all_ms))
+      ret <- matrix(0, nrow=length(member_ids), ncol=length(all_groups),
+                    dimnames=list(member_ids, all_groups))
+      for (i in seq_along(member_ids)) {
+        ret[i, all_ms[[i]]] <- 1   # slow, probably
+      }
+      
+      ret
+    }
+  })
+  
+  
   ################### RSVP Plot #############################
   
   output$rsvpPlot <- renderPlot({
@@ -208,5 +254,11 @@ shinyServer(function(input, output, session) {
       write.csv(nextEventVIPs(), con)
     }
   )
+  
+  ################### Attendee Clusters #####################
+  
+  output$headClustTbl <- renderText({
+    print(head(nextEventMemberMatrix()))
+  })
   
 })

@@ -10,8 +10,8 @@ shinyUI(dashboardPage(
     selectInput("selectedMeetup", "Group", ""),
     sidebarMenu(
       menuItem("RSVPs", tabName="rsvps", icon=icon("thumbs-up")),
+      menuItem("Attendee Clusters", tabName="attendees", icon=icon("users")),
       menuItem("Nametags", tabName="nametags", icon=icon("tags")),
-      menuItem("Attendees", tabName="attendees", icon=icon("users")),
       menuItem("Pick Winner", tabName="pickwinner", icon=icon("trophy")),
       menuItem("About", tabName="about", icon=icon("question-circle"))
     )
@@ -24,11 +24,14 @@ shinyUI(dashboardPage(
       tabItem("rsvps",
               plotOutput("rsvpPlot")),
       tabItem("nametags",
-              downloadButton("downloadNametagsCSV", label="Download Nametag CSV")),
+              downloadButton("downloadNametagsCSV", label="Download Nametag CSV"),
+              p("Attendees of next Meetup, restricted to people with Roles or Titles.")),
       tabItem("attendees",
+              textOutput("headClustTbl"),
               plotOutput("attendeeClusters")),
       tabItem("pickwinner",
-              actionButton("winnerbutton", "Pick a Winner!", icon=icon("trophy"))),
+              actionButton("winnerbutton", "Pick a Winner!", icon=icon("trophy")),
+              p("not yet implemented...")),
       tabItem("about",
               a(href="https://github.com/HarlanH/shiny-meetup-stats", "Source on Github"))
     )
