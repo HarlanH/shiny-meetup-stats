@@ -5,6 +5,7 @@ library(tidyr)
 library(ggplot2)
 library(dplyr)
 library(stringr)
+library(cluster)
 
 options(stringsAsFactors = FALSE)
 
@@ -75,6 +76,7 @@ shinyServer(function(input, output, session) {
                          access_token=tok))
     message(status_code(resp))
     if (status_code(resp) != 200) {
+      print(headers(resp)[str_detect(names(headers(resp)), "x-ratelimit")])
       paste("ERROR", content(resp)$problem)
     } else {
       mus <- content(resp)$results
@@ -186,20 +188,19 @@ shinyServer(function(input, output, session) {
   })
   
   # for a single person, get a vector of their Meetup memberships
-  getMemberships <- function(tok, member_id, sleepdur=.5) {
+  getMemberships <- function(tok, member_id, sleepdur=.25) {
     Sys.sleep(sleepdur)
     resp <- GET(url=paste0(MeetupBaseURL, "/members/", member_id),
                 query=list(fields='memberships',
                            only="id,memberships",
                            access_token=tok))
-    res <- content(resp)$results
-    sapply(res$memberships$member, function(x) x$group$urlname)
+    sapply(content(resp)$memberships$member, function(x) x$group$urlname)
   }
   
   nextEventMemberMatrix <- reactive({
     if (nchar(input$selectedMeetup) > 0) {
       tok <- AccessToken()
-      member_ids <- nextEventRSVPs()[1:10]
+      member_ids <- nextEventRSVPs()
       
       message("getting memberships")
       # get a big list of memberships, then create a matrix
@@ -218,7 +219,8 @@ shinyServer(function(input, output, session) {
       ret <- matrix(0, nrow=length(member_ids), ncol=length(all_groups),
                     dimnames=list(member_ids, all_groups))
       for (i in seq_along(member_ids)) {
-        ret[i, all_ms[[i]]] <- 1   # slow, probably
+        if (length(all_ms[[i]]) > 0)
+          ret[i, all_ms[[i]]] <- 1   # slow, probably
       }
       
       ret
@@ -261,4 +263,12 @@ shinyServer(function(input, output, session) {
     print(head(nextEventMemberMatrix()))
   })
   
+  output$attendeeClusters <- renderDataTable({
+    mat <- nextEventMemberMatrix()
+    mat <- mat[,names(tail(sort(colSums(mat)), nrow(mat)))] # make square
+    x <- pam(mat, input$numClusts)
+    data.frame(cluster=1:input$numClusts,
+               count=as.numeric(table(x$clustering)),
+               groups=apply(x$medoids, 1, function(x) paste(names(x)[x>0], collapse=', ')))
+  })
 })
