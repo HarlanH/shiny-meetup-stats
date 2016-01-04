@@ -13,6 +13,7 @@ shinyUI(dashboardPage(
       menuItem("Attendee Clusters", tabName="attendees", icon=icon("users")),
       menuItem("Nametags", tabName="nametags", icon=icon("tags")),
       menuItem("Pick Winner", tabName="pickwinner", icon=icon("trophy")),
+      menuItem("Speakers on Twitter", tabName="twitters", icon=icon("twitter")),
       menuItem("About", tabName="about", icon=icon("question-circle"))
     )
   ),
@@ -32,6 +33,8 @@ shinyUI(dashboardPage(
               dataTableOutput("attendeeClusters")),
       tabItem("pickwinner",
               actionButton("winnerbutton", "Pick a Winner!", icon=icon("trophy")),
+              p("not yet implemented...")),
+      tabItem("twitters",
               p("not yet implemented...")),
       tabItem("about",
               a(href="https://github.com/HarlanH/shiny-meetup-stats", "Source on Github"))
